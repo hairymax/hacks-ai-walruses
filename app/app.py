@@ -5,17 +5,17 @@ import base64
 from PIL import Image
 from io import BytesIO
 import hashlib
-from nn import warl_model
+from nn import WarlModel
 from dash.exceptions import PreventUpdate
 import os
 
-img_path = 'images/'
+img_path = './images/'
 os.makedirs(img_path, exist_ok=True)
 
 # Переменные nnDetection
-checkpoint = 'data'
-config = 'data'
-model = warl_model(checkpoint=checkpoint, config=config)
+checkpoint = './mask_rcnn/epoch_12.pth'
+config = '/home/hm/tmp/mmdetection/configs/mask_rcnn/mask_rcnn_x101_64x4d_fpn_1x_coco.py'
+model = WarlModel(checkpoint=checkpoint, config=config)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -128,10 +128,10 @@ app.layout = html.Div([
 def func(contents, filename):
     header, contents = contents.split(',', maxsplit=1)
     image, _ = b64_to_img(contents)
-    image.save(img_path+filename+".jpg",
+    image.save(img_path+filename,
                "JPEG", quality=100, subsampling=0)
 
-    new_path, num_warls = model(path_to_img=img_path+filename+".jpg")
+    new_path, num_warls = model(img_path+filename)
 
     if new_path is not None:
         new_image = Image.open(new_path)
