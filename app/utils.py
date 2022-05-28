@@ -136,14 +136,16 @@ def draw_mask(img, bw_mask, opacity=0.5, chanel_color=2):
     dst = cv2.addWeighted(img, 1, overlay, opacity, 0)
     return dst
 
+
 def restore_predict(img_orig, img_resize, bboxes, masks):
     restore_boxes = []
     restore_masks = []
     height_orig, width_orig = img_orig.shape[:2]
     height_resize, width_resize = img_resize.shape[:2]
     scale_coef = height_orig/height_resize
-    for bbox, mask in zip(bboxes, masks):
-        restore_boxes.append(np.append(bbox[:4] * scale_coef, bbox[5]))
+    print(len(bboxes[0]), len(masks[0]))
+    for bbox, mask in zip(bboxes[0], masks[0]):
+        restore_boxes.append(np.append(bbox[:4] * scale_coef, bbox[4]))
         restore_masks.append(cv2.resize(mask, (height_orig, width_orig)))
     return restore_boxes, restore_masks
 

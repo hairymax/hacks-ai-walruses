@@ -14,7 +14,7 @@ import os.path as osp
 from .utils import *
 
 
-class warl_model:
+class WarlModel:
     def __init__(self, checkpoint, config, device: str="cpu"):
         self.checkpoint_path = checkpoint
         self.config_path = config
@@ -24,9 +24,13 @@ class warl_model:
         self.checkpoint = None
         self.cfg_model = None
 
+        self.load_config()
+        self.load_model()
+
     def load_config(self):
-        self.cfg_model.dataset_type = 'COCODataset'
+
         self.cfg_model = Config.fromfile(self.config_path)
+        self.cfg_model.dataset_type = 'COCODataset'
         self.cfg_model.device = self.device
         self.cfg_model.data.workers_per_gpu = 0
         if "cascade_rcnn" in self.config_path:
@@ -73,7 +77,7 @@ class warl_model:
 
         # print(path_to_img)
         if (self.model is None) or (self.cfg_model is None):
-            return None
+            return None, None
 
         img_orig = mmcv.imread(path_img)
         img = img_orig.copy()
@@ -82,7 +86,7 @@ class warl_model:
         if height > 800:
             scale_coef = 800/height
         if scale_coef != 1:
-            new_height, new_width = height * scale_coef, width * scale_coef
+            new_height, new_width = int(height * scale_coef), int(width * scale_coef)
             img = cv2.resize(img_orig, (new_height, new_width))
 
         # инференс скользящим окном?
@@ -102,7 +106,8 @@ class warl_model:
         img_predict = plot_result(img_orig, bboxes, masks, polygons)
         cv2.imwrite(path_img_predict, img_predict)
 
-        num_warls = 5
+        poly_centres = self.get_centre_objects(polygons)
+        num_warls = len(poly_centres)
         return path_img_predict, num_warls
 
     def postprocessing(self, bboxes, masks, score_thr: float = 0.01):
@@ -136,7 +141,9 @@ class warl_model:
             poly_centres.append([poly_centre.x, poly_centre.y])
 
         # если точки слишком близко - то они объединяются
-        return  poly_centres
+        return poly_centres
+
+
 
 
 
