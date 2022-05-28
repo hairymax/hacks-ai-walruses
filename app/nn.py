@@ -12,6 +12,7 @@ from mmdet.apis import train_detector
 from mmdet.apis import inference_detector, show_result_pyplot
 import os.path as osp
 from .utils import *
+import pandas as pd
 
 
 class WarlModel:
@@ -110,7 +111,16 @@ class WarlModel:
         img_predict = plot_result(img_orig, bboxes, masks, polygons)
         cv2.imwrite(path_img_predict, img_predict)
 
+        path_csv_predict = os.path.join(path_img_dir, img_basename.replace(f".{ext_img}", f".csv"))
         poly_centres = self.get_centre_objects(polygons)
+        df_predict = []
+        for poly_centre in poly_centres:
+            row_predict = {}
+            row_predict.update({"x": poly_centre[0]})
+            row_predict.update({"y": poly_centre[0]})
+            df_predict.append(row_predict.copy())
+        df_predict = pd.DataFrame(df_predict)
+        df_predict.to_csv(path_csv_predict, index=False)
         num_warls = len(poly_centres)
         return path_img_predict, num_warls
 
@@ -147,6 +157,7 @@ class WarlModel:
 
         # если точки слишком близко - то они объединяются
         return poly_centres
+
 
 
 
