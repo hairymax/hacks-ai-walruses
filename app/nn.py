@@ -116,8 +116,8 @@ class WarlModel:
         df_predict = []
         for poly_centre in poly_centres:
             row_predict = {}
-            row_predict.update({"x": poly_centre[0]})
-            row_predict.update({"y": poly_centre[0]})
+            row_predict.update({"x": int(poly_centre[0])})
+            row_predict.update({"y": int(poly_centre[0])})
             df_predict.append(row_predict.copy())
         df_predict = pd.DataFrame(df_predict)
         df_predict.to_csv(path_csv_predict, index=False)
