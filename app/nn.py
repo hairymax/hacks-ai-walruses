@@ -109,7 +109,7 @@ class warl_model:
         filter_bboxes = []
         filter_masks = []
         for bbox, mask in zip(bboxes, masks):
-            xtl, ytl, xbr, tbr, conf = bbox
+            xtl, ytl, xbr, ybr, conf = bbox
             if conf >= score_thr:
                 filter_bboxes.append(bbox)
                 filter_masks.append(masks)

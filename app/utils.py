@@ -121,6 +121,10 @@ def plot_result(img, bboxes, masks, polygons):
     for poly_centre in poly_centres:
         img_predict = cv2.circle(img_predict, poly_centre, 10, [255, 0, 0], -1)
 
+    for bbox in bboxes:
+        xtl, ytl, xbr, ybr, conf = bbox
+        img_predict = cv2.rectangle(img_predict, (int(xtl), int(ytl)), (int(xbr), int(ybr)), [255, 0, 0], 2)
+
     return img_predict
 
 
@@ -140,6 +144,6 @@ def restore_predict(img_orig, img_resize, bboxes, masks):
     scale_coef = height_orig/height_resize
     for bbox, mask in zip(bboxes, masks):
         restore_boxes.append(np.append(bbox[:4] * scale_coef, bbox[5]))
-        restore_masks.append(cv2.resize(mask, (height_orig, width_orig)
+        restore_masks.append(cv2.resize(mask, (height_orig, width_orig)))
     return restore_boxes, restore_masks
 
