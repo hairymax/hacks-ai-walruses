@@ -64,19 +64,43 @@ class warl_model:
         return bboxes, masks
 
     def __call__(self, path_img: str, score_thr: float = 0.01):
+        """
+        model trained size by (1333, 800)
+        :param path_img:
+        :param score_thr:
+        :return:
+        """
+
         # print(path_to_img)
         if (self.model is None) or (self.cfg_model is None):
             return None
 
-        img = mmcv.imread(path_img)
+        img_orig = mmcv.imread(path_img)
+        img = img_orig.copy()
+        height, width = img.shape[:2]
+        scale_coef = 1
+        if height > 800:
+            scale_coef = 800/height
+        if scale_coef != 1:
+            new_height, new_width = height * scale_coef, width * scale_coef
+            img = cv2.resize(img_orig, (new_height, new_width))
+
+        # инференс скользящим окном?
+
         bboxes, masks = self.inference(img)
-        filter_bboxes, filter_masks, filter_contours = self.postprocessing(bboxes, masks, score_thr)
+        if scale_coef != 1:
+            boxes, masks = restore_predict(img_orig, img, bboxes, masks)
+
+        bboxes, masks, polygons = self.postprocessing(bboxes, masks, score_thr)
         # img_predict = show_result_pyplot(self.model, img, result, score_thr=0.01)
 
         path_img_dir = os.path.dirname(path_img)
         img_basename = os.path.basename(path_img)
         ext_img = img_basename.split(".")[-1]
         path_img_predict = os.path.join(path_img_dir, img_basename.replace(f".{ext_img}", f"_predict.jpg"))
+
+        img_predict = plot_result(img_orig, bboxes, masks, polygons)
+        cv2.imwrite(path_img_predict, img_predict)
 
         num_warls = 5
         return path_img_predict, num_warls
@@ -100,6 +124,20 @@ class warl_model:
             filter_contours.append(poly)
 
         return filter_bboxes, filter_masks, filter_contours
+
+    def get_centre_objects(self, polygons):
+        poly_centres = []
+        for poly in polygons:
+            count_points = poly.shape[0]
+            if count_points <= 2:
+                continue
+            geom_poly = Polygon(poly)
+            poly_centre = geom_poly.centroid
+            poly_centres.append([poly_centre.x, poly_centre.y])
+
+        # если точки слишком близко - то они объединяются
+        return  poly_centres
+
 
 
 

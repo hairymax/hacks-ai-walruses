@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from shapely.geometry import Polygon, Point
+import math
 
 def get_center(poly_x, poly_y):
     poly = Polygon([(x, y) for x, y in zip(poly_x, poly_y)])
@@ -82,3 +83,63 @@ def simplify_curve(pts, tolerance):
     keep = list(keep)
     keep.sort()
     return [pts[i] for i in keep]
+
+
+def plot_result(img, bboxes, masks, polygons):
+    """
+    Draw in image masks of objects and centre of objects (red point) and classification object
+    :param img:
+    :param bboxes:
+    :param masks:
+    :param poly:
+    :return:
+    """
+    img_predict = img.copy()
+
+    poly_centres = []
+    median_area = np.median([Polygon(poly).area for poly in polygons if poly.shape[0] > 2])
+
+    all_mask_large = []
+    all_mask_small = []
+    for bbox, mask, poly in zip(bboxes, masks, polygons):
+        count_points = poly.shape[0]
+        if count_points <= 2:
+            continue
+        geom_poly = Polygon(poly)
+        poly_centre = geom_poly.centroid
+        poly_centres.append([poly_centre.x, poly_centre.y])
+        if geom_poly.area < median_area*2/3:
+            all_mask_small.append(mask)
+        else:
+            all_mask_large.append(mask)
+    all_mask_large = np.stack(all_mask_large, axis=-1)
+    all_mask_small = np.stack(all_mask_small, axis=-1)
+
+    img_predict = draw_mask(img_predict, bw_mask=all_mask_large, chanel_color=2)
+    img_predict = draw_mask(img_predict, bw_mask=all_mask_small, chanel_color=1)
+
+    for poly_centre in poly_centres:
+        img_predict = cv2.circle(img_predict, poly_centre, 10, [255, 0, 0], -1)
+
+    return img_predict
+
+
+def draw_mask(img, bw_mask, opacity=0.5, chanel_color=2):
+    union_mask = bw_mask * 255
+    height, width = img.shape[:2]
+    overlay = np.zeros((height, width, 3), dtype=np.uint8)
+    overlay[:, :, chanel_color] = union_mask.copy()
+    dst = cv2.addWeighted(img, 1, overlay, opacity, 0)
+    return dst
+
+def restore_predict(img_orig, img_resize, bboxes, masks):
+    restore_boxes = []
+    restore_masks = []
+    height_orig, width_orig = img_orig.shape[:2]
+    height_resize, width_resize = img_resize.shape[:2]
+    scale_coef = height_orig/height_resize
+    for bbox, mask in zip(bboxes, masks):
+        restore_boxes.append(np.append(bbox[:4] * scale_coef, bbox[5]))
+        restore_masks.append(cv2.resize(mask, (height_orig, width_orig)
+    return restore_boxes, restore_masks
+
