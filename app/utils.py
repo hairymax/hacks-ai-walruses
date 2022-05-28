@@ -144,9 +144,7 @@ def restore_predict(img_orig, img_resize, bboxes, masks):
     height_orig, width_orig = img_orig.shape[:2]
     height_resize, width_resize = img_resize.shape[:2]
     scale_coef = height_orig/height_resize
-    print(len(bboxes[0]), len(masks[0]))
     for bbox, mask in zip(bboxes[0], masks[0]):
         restore_boxes.append(np.append(bbox[:4] * scale_coef, bbox[4]))
-        #print(mask, len(mask))
-        restore_masks.append(cv2.resize(mask*256, (height_orig, width_orig))//256)
+        restore_masks.append(cv2.resize(mask*256, (height_orig, width_orig))//255)
     return restore_boxes, restore_masks
