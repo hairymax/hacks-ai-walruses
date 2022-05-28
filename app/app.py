@@ -1,6 +1,6 @@
-from dash import Dash, callback_context
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import Dash, callback_context, html, dcc
+# import dash_core_components as dcc
+# import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import base64
@@ -24,13 +24,15 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets,
            prevent_initial_callbacks=True)
 
-imgs = [(None, None), (None, None), (None, None), (None, None), (None, None)]
+imgs = [(None, None, None, None), (None, None, None, None), (None, None, None, None), (None, None, None, None), (None, None, None, None)]
 
-current_img = (None, None)
+current_img = (None, None, None, None)
 
 
-def old_images(contents, filename):
-    imgs.insert(0, (contents, filename))
+
+def old_images():
+    global current_img, imgs
+    imgs.insert(0, current_img)
 
     if len(imgs) > 5:
         imgs.pop(-1)
@@ -56,6 +58,7 @@ def old_images(contents, filename):
 
 
 def old_images_same():
+    global imgs
     vis = 'visible'
     cards = []
     for i in range(len(imgs)):
@@ -141,21 +144,28 @@ def func(contents):
 
 
 def parse_contents():
-    contents, filename = current_img
+    global current_img
 
-    updated_contents, num_warls = func(contents)
+    contents, filename, _, _ = current_img
+    if contents is not None:
+        if current_img[2] is None and current_img[3] is None:
+            updated_contents, num_warls = func(contents)
+            current_img = (current_img[0], current_img[1], updated_contents, num_warls)
+        else:
+            _, _, updated_contents, num_warls = current_img
+        
+        return html.Div([
+            html.Div(className='row', children=[
+                html.H3(f'Название файла: {filename}', style={
+                        'textAlign': 'center'}, className='column'),
+                html.H3(f'Моржей обнаружено: {num_warls}', style={
+                        'textAlign': 'center'}, className='column')
+            ]),
 
-    return html.Div([
-        html.Div(className='row', children=[
-            html.H3(f'Название файла: {filename}', style={
-                    'textAlign': 'center'}, className='column'),
-            html.H3(f'Моржей обнаружено: {num_warls}', style={
-                    'textAlign': 'center'}, className='column')
-        ]),
-
-        html.Div(className='row', children=[html.Img(src=contents, className='column'), html.Img(
-            src=updated_contents, className='column')]),
-    ], style={'min-height': '450px'})
+            html.Div(className='row', children=[html.Img(src=contents, className='column'), html.Img(
+                src=updated_contents, className='column')]),
+        ], style={'min-height': '450px'})
+    else: return None
 
 
 @app.callback(
@@ -169,20 +179,19 @@ def parse_contents():
     Input('4-button', 'n_clicks'),
     State('upload-image', 'filename'),)
 def update_output(list_of_contents, btn0, btn1, btn2, btn3, btn4, list_of_names):
-    global current_img
+    global current_img, imgs
 
     changed_id = [p['prop_id'] for p in callback_context.triggered][0]
     if changed_id is not None and 'button' in changed_id:
         index = int(changed_id[0])
-        current_img = (imgs[index][0], imgs[index][1])
+        current_img = (imgs[index][0], imgs[index][1], imgs[index][2], imgs[index][3])
         return parse_contents(), old_images_same()
 
     if list_of_contents is not None and 'upload-image' in changed_id:
-        card = old_images(list_of_contents[0], list_of_names[0])
-        current_img = (list_of_contents[0], list_of_names[0])
-
+        current_img = (list_of_contents[0], list_of_names[0], None, None)
         children = parse_contents()
 
+        card = old_images()
         return children, card
 
     return parse_contents(), old_images_same()
