@@ -39,6 +39,7 @@ class WarlModel:
             self.cfg_model.model.roi_head.bbox_head[1].num_classes = 1
             self.cfg_model.model.roi_head.bbox_head[2].num_classes = 1
             self.cfg_model.model.roi_head.mask_head.num_classes = 1
+            self.cfg_model.model.test_cfg.rpn.nms_pre = 1000
             self.cfg_model.model.test_cfg.rpn.max_per_img = 1000
             self.cfg_model.model.test_cfg.rcnn.max_per_img = 1000
         elif "mask_rcnn" in self.config_path:
@@ -117,7 +118,7 @@ class WarlModel:
         for poly_centre in poly_centres:
             row_predict = {}
             row_predict.update({"x": int(poly_centre[0])})
-            row_predict.update({"y": int(poly_centre[0])})
+            row_predict.update({"y": int(poly_centre[1])})
             df_predict.append(row_predict.copy())
         df_predict = pd.DataFrame(df_predict)
         df_predict.to_csv(path_csv_predict, index=False)
@@ -139,6 +140,8 @@ class WarlModel:
         for bw_mask in filter_masks:
             #bw_mask must black white
             contours, hierarchy = cv2.findContours(bw_mask.copy().astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            if len(contours) == 0:
+                continue
             max_area_contour = max(contours, key=lambda cnt: cv2.contourArea(cnt))
             poly = max_area_contour.transpose(1, 0, 2)[0]
             filter_contours.append(poly)
