@@ -125,20 +125,23 @@ app.layout = html.Div([
 ])
 
 
-def func(contents):
+def func(contents, filename):
     header, contents = contents.split(',', maxsplit=1)
     image, _ = b64_to_img(contents)
-    image.save(img_path+"temp.jpg",
+    image.save(img_path+filename+".jpg",
                "JPEG", quality=100, subsampling=0)
 
-    new_path, num_warls = model(path_to_img=img_path+"temp.jpg")
+    new_path, num_warls = model(path_to_img=img_path+filename+".jpg")
 
-    new_image = Image.open(new_path)
+    if new_path is not None:
+        new_image = Image.open(new_path)
 
-    b64_string, _ = img_to_b64(new_image)
-    b64_string = str(header) + ',' + str(b64_string)[2:-1]
+        b64_string, _ = img_to_b64(new_image)
+        b64_string = str(header) + ',' + str(b64_string)[2:-1]
 
-    return b64_string, num_warls
+        return b64_string, num_warls
+    else:
+        return None, None
 
 
 def parse_contents():
@@ -147,7 +150,7 @@ def parse_contents():
     contents, filename, _, _ = current_img
     if contents is not None:
         if current_img[2] is None and current_img[3] is None:
-            updated_contents, num_warls = func(contents)
+            updated_contents, num_warls = func(contents, filename)
             current_img = (current_img[0], current_img[1], updated_contents, num_warls)
         else:
             _, _, updated_contents, num_warls = current_img
