@@ -12,3 +12,8 @@ train_mask_rcnn.ipynb
 в файле requirements.txt находится список необходимых библиотек   
 Описание устновки mmdetection и mmcv можно найти на офциальном сайте   
 https://mmdetection.readthedocs.io/en/v2.21.0/get_started.html
+
+## Запуск вебинтерфейса
+```sh
+python3 app/app.py
+```
