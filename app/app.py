@@ -13,8 +13,9 @@ img_path = './images/'
 os.makedirs(img_path, exist_ok=True)
 
 # Переменные nnDetection
-checkpoint = './mask_rcnn/epoch_12.pth'
-config = '/home/hm/tmp/mmdetection/configs/mask_rcnn/mask_rcnn_x101_64x4d_fpn_1x_coco.py'
+checkpoint = '/home/hm/ml/hack-ai-walruses/app/checkpoints/epoch_22.pth'
+#config = '/home/hm/tmp/mmdetection/configs/mask_rcnn/mask_rcnn_x101_64x4d_fpn_1x_coco.py'
+config = '/home/hm/tmp/mmdetection/configs/cascade_rcnn/cascade_mask_rcnn_x101_32x4d_fpn_1x_coco.py'
 model = WarlModel(checkpoint=checkpoint, config=config)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -120,6 +121,12 @@ app.layout = html.Div([
         # Allow multiple files to be uploaded
         multiple=True
     ),
+    dcc.Loading(
+            id="loading-1",
+            type="default",
+            children=html.Div(id="loading-output-1"),
+            fullscreen=True
+        ),
     html.Div(id='output-image-upload'),
     html.Div(id='old-images-cards', children=old_images_same()),
 ])
@@ -172,6 +179,7 @@ def parse_contents():
 @app.callback(
     Output('output-image-upload', 'children'),
     Output('old-images-cards', 'children'),
+    Output('loading-output-1', 'children'),
     Input('upload-image', 'contents'),
     Input('0-button', 'n_clicks'),
     Input('1-button', 'n_clicks'),
@@ -186,16 +194,16 @@ def update_output(list_of_contents, btn0, btn1, btn2, btn3, btn4, list_of_names)
     if changed_id is not None and 'button' in changed_id:
         index = int(changed_id[0])
         current_img = (imgs[index][0], imgs[index][1], imgs[index][2], imgs[index][3])
-        return parse_contents(), old_images_same()
+        return parse_contents(), old_images_same(), btn0
 
     if list_of_contents is not None and 'upload-image' in changed_id:
         current_img = (list_of_contents[0], list_of_names[0], None, None)
-        children = parse_contents()
+        children = parse_contents(), btn0
 
         card = old_images()
-        return children, card
+        return children, card, btn0
 
-    return parse_contents(), old_images_same()
+    return parse_contents(), old_images_same(), btn0
 
 if __name__ == '__main__':
     app.run_server(debug=True)

@@ -1,1 +1,5 @@
-app/mask_rcnn
+.vscode
+app/checkpoints
+app/test_data
+app/__pycache__
+*images

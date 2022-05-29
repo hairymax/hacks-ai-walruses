@@ -12,6 +12,7 @@ from mmdet.apis import train_detector
 from mmdet.apis import inference_detector, show_result_pyplot
 import os.path as osp
 from utils import *
+import pandas as pd
 
 
 class WarlModel:
@@ -28,6 +29,7 @@ class WarlModel:
         self.load_model()
 
     def load_config(self):
+
         self.cfg_model = Config.fromfile(self.config_path)
         self.cfg_model.dataset_type = 'COCODataset'
         self.cfg_model.device = self.device
@@ -37,6 +39,8 @@ class WarlModel:
             self.cfg_model.model.roi_head.bbox_head[1].num_classes = 1
             self.cfg_model.model.roi_head.bbox_head[2].num_classes = 1
             self.cfg_model.model.roi_head.mask_head.num_classes = 1
+            self.cfg_model.model.test_cfg.rpn.max_per_img = 1000
+            self.cfg_model.model.test_cfg.rcnn.max_per_img = 1000
         elif "mask_rcnn" in self.config_path:
             self.cfg_model.model.roi_head.bbox_head.num_classes = 1
             self.cfg_model.model.roi_head.mask_head.num_classes = 1
@@ -73,7 +77,8 @@ class WarlModel:
         :param score_thr:
         :return:
         """
-        print(path_img)
+
+        # print(path_to_img)
         if (self.model is None) or (self.cfg_model is None):
             return None, None
 
@@ -85,14 +90,16 @@ class WarlModel:
             scale_coef = 800/height
         if scale_coef != 1:
             new_height, new_width = int(height * scale_coef), int(width * scale_coef)
-            img = cv2.resize(img_orig, (new_height, new_width))
+            img = cv2.resize(img_orig, (new_width, new_height))
 
         # инференс скользящим окном?
 
         bboxes, masks = self.inference(img)
         if scale_coef != 1:
-            boxes, masks = restore_predict(img_orig, img, bboxes, masks)
-
+            bboxes, masks = restore_predict(img_orig, img, bboxes, masks)
+        else:
+            bboxes, masks = bboxes[0], masks[0]
+        print(len(bboxes), len(masks))
         bboxes, masks, polygons = self.postprocessing(bboxes, masks, score_thr)
         # img_predict = show_result_pyplot(self.model, img, result, score_thr=0.01)
 
@@ -104,24 +111,37 @@ class WarlModel:
         img_predict = plot_result(img_orig, bboxes, masks, polygons)
         cv2.imwrite(path_img_predict, img_predict)
 
-        num_warls = 5
+        path_csv_predict = os.path.join(path_img_dir, img_basename.replace(f".{ext_img}", f".csv"))
+        poly_centres = self.get_centre_objects(polygons)
+        df_predict = []
+        for poly_centre in poly_centres:
+            row_predict = {}
+            row_predict.update({"x": int(poly_centre[0])})
+            row_predict.update({"y": int(poly_centre[1])})
+            df_predict.append(row_predict.copy())
+        df_predict = pd.DataFrame(df_predict)
+        df_predict.to_csv(path_csv_predict, index=False)
+        num_warls = len(poly_centres)
         return path_img_predict, num_warls
 
     def postprocessing(self, bboxes, masks, score_thr: float = 0.01):
         filter_bboxes = []
         filter_masks = []
+
         for bbox, mask in zip(bboxes, masks):
             xtl, ytl, xbr, ybr, conf = bbox
             if conf >= score_thr:
                 filter_bboxes.append(bbox)
-                filter_masks.append(masks)
+                filter_masks.append(mask)
 
         # masks to contours
         filter_contours = []
         for bw_mask in filter_masks:
             #bw_mask must black white
-            contours, hierarchy = cv2.findContours(bw_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-            max_area_contour = max(contours, key= lambda cnt: cv2.contourArea(cnt))
+            contours, hierarchy = cv2.findContours(bw_mask.copy().astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            if len(contours) <= 0:
+                continue
+            max_area_contour = max(contours, key=lambda cnt: cv2.contourArea(cnt))
             poly = max_area_contour.transpose(1, 0, 2)[0]
             filter_contours.append(poly)
 
