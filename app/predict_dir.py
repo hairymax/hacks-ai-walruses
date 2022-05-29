@@ -3,7 +3,7 @@ from nn import WarlModel
 import time
 
 if __name__ == '__main__':
-    checkpoint = "/home/hm/ml/hack-ai-walruses/app/checkpoints/cascade_mask_rcnn_x101_32x4d_fpn_1x_epoch_32.pth"
+    checkpoint = "/home/hm/ml/hack-ai-walruses/app/checkpoints/cascade_mask_rcnn_x101_32x4d_fpn_1x_epoch_36.pth"
     config = "/home/hm/tmp/mmdetection/configs/cascade_rcnn/cascade_mask_rcnn_x101_32x4d_fpn_1x_coco.py"
     nn_model = WarlModel(checkpoint=checkpoint,
                          config=config)

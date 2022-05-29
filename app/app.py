@@ -13,7 +13,7 @@ img_path = './images/'
 os.makedirs(img_path, exist_ok=True)
 
 # Переменные nnDetection
-checkpoint = '/home/hm/ml/hack-ai-walruses/app/checkpoints/epoch_22.pth'
+checkpoint = '/home/hm/ml/hack-ai-walruses/app/checkpoints/cascade_mask_rcnn_x101_32x4d_fpn_1x_epoch_36.pth'
 #config = '/home/hm/tmp/mmdetection/configs/mask_rcnn/mask_rcnn_x101_64x4d_fpn_1x_coco.py'
 config = '/home/hm/tmp/mmdetection/configs/cascade_rcnn/cascade_mask_rcnn_x101_32x4d_fpn_1x_coco.py'
 model = WarlModel(checkpoint=checkpoint, config=config)
@@ -164,7 +164,7 @@ def parse_contents():
         
         return html.Div([
             html.Div(className='row', children=[
-                html.H3(f'Название файла: {filename}', style={
+                html.H3(f'{filename}', style={
                         'textAlign': 'center'}, className='column'),
                 html.H3(f'Моржей обнаружено: {num_warls}', style={
                         'textAlign': 'center'}, className='column')
@@ -172,6 +172,9 @@ def parse_contents():
 
             html.Div(className='row', children=[html.Img(src=contents, className='column'), html.Img(
                 src=updated_contents, className='column')]),
+            html.Div(className='row', children=[html.H6('Обозначения:', style={'padding-right':'30px'}), 
+                      html.H6('Красный цвет - взрослые особи,', style={'padding-right':'30px','color':'red'}),
+                      html.H6('Зелёный цвет - детёныши', style={'color':'green'})], style={'align-content': 'center'})
         ], style={'min-height': '450px'})
     else: return None
 
@@ -206,4 +209,4 @@ def update_output(list_of_contents, btn0, btn1, btn2, btn3, btn4, list_of_names)
     return parse_contents(), old_images_same(), btn0
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
