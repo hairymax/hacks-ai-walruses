@@ -13,6 +13,9 @@ train_mask_rcnn.ipynb
 Описание устновки mmdetection и mmcv можно найти на офциальном сайте   
 https://mmdetection.readthedocs.io/en/v2.21.0/get_started.html
 
+## Веса обученной нейросети
+https://drive.google.com/file/d/1-GD7yanzZ3HfQ0flyqG50GRfNUemwVjY/view?usp=sharing
+
 ## Запуск вебинтерфейса
 ```sh
 python3 app/app.py
