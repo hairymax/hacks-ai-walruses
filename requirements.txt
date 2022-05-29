@@ -1,0 +1,6 @@
+numpy
+pandas
+mmcv
+mmdet
+opencv
+dash
