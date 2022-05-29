@@ -18,5 +18,5 @@ https://mmdetection.readthedocs.io/en/v2.21.0/get_started.html
 python3 app/app.py
 ```
 
-## Решениефал
+## Решение
 Решение команды Pytbools на тестовых изображениях представлен в файле pytbools.zip
