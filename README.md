@@ -20,6 +20,8 @@ https://drive.google.com/file/d/1-GD7yanzZ3HfQ0flyqG50GRfNUemwVjY/view?usp=shari
 ```sh
 python3 app/app.py
 ```
+## Пример работа вебинтерфейса
+https://drive.google.com/file/d/1P2IDwXN5JdZkW8l5CHhEcZNk1K8kdCu6/view?usp=sharing
 
 ## Решение
 Решение команды Pytbools на тестовых изображениях представлен в файле pytbools.zip
