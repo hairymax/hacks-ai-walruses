@@ -1,4 +1,4 @@
-# hack-ai-walruses
+# hacks-ai-walruses
 
 ## Хакатон "Цифровой прорыв"
 
@@ -23,6 +23,7 @@ python3 app/app.py
 ```
 ## Пример работа вебинтерфейса
 https://drive.google.com/file/d/1P2IDwXN5JdZkW8l5CHhEcZNk1K8kdCu6/view?usp=sharing
+Предсказание модели выполняется на CPU, поскольку по условию задания необходимо, чтобы решение работало на ноутбуке без видеокарты
 
 ## Решение
 Решение команды Pytbools на тестовых изображениях представлен в файле pytbools.zip
